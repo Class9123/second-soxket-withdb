@@ -37,7 +37,7 @@ html_content = '''
     </script>
 </head>
 <body>
-    <h1>Flask-SocketIO Example</h1>
+    <h1>Flask-SocketIO jcxftsufyfExample</h1>
     <input type="text" id="message_input" placeholder="Type your message...">
     <button onclick="sendMessage()">Send</button>
     <ul id="messages"></ul>
