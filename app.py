@@ -1,11 +1,9 @@
 
 from flask import Flask, render_template_string
-from flask_socketio import SocketIO, emit
 from flask_cors import CORS
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'your_secret_key'
-socketio = SocketIO(app, cors_allowed_origins="*")
 CORS(app)
 
 # HTML content as a string
@@ -51,11 +49,7 @@ html_content = '''
 def index():
     return render_template_string(html_content)
 
-@socketio.on('message')
-def handle_message(message):
-    print('Received message: ' + message)
-    emit('response', 'Server received: ' + message, broadcast=True)
 
 if __name__ == '__main__':
-    socketio.run(app, debug=True)
+    app.run( debug=True)
     
