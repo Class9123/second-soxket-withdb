@@ -1,10 +1,12 @@
 
 from flask import Flask, render_template_string
 from flask_socketio import SocketIO, emit
+from flask_cors import CORS
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'your_secret_key'
-socketio = SocketIO(app, async_mode='gevent', cors_allowed_origins="*")
+socketio = SocketIO(app, cors_allowed_origins="*")
+CORS(app)
 
 # HTML content as a string
 html_content = '''
