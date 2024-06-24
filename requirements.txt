@@ -4,7 +4,7 @@ click==8.0.1
 blinker==1.4
 importlib-metadata==4.5.0
 werkzeug==2.0.1
-zip==3.4.0
+zip
 Jinja2==3.0.1
 itsdangerous==2.0.1
 flask-socketio==5.1.1
