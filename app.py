@@ -590,7 +590,7 @@ def handle_message(data):
 	message =data["message"]
 	database [u]['friends'][f].append(("you", message))
 	database [f]["friends"][u].append(("friend", message))
-	emit("receive_message", message, skip_sid=request.sid,to=get_room_name(u,f))
+	emit("receive_message", message, skip_sid=request.sid,room=get_room_name(u,f))
 
 #for adding new friends 
 @sio.on("add")
