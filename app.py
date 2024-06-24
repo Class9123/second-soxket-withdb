@@ -1,19 +1,59 @@
-from flask import Flask, render_template
-from flask_socketio import SocketIO, send
+
+from flask import Flask, render_template_string
+from flask_socketio import SocketIO, emit
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'your_secret_key'
-socketio = SocketIO(app)
+socketio = SocketIO(app, async_mode='eventlet', cors_allowed_origins="*")
+
+# HTML content as a string
+html_content = '''
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flask-SocketIO Example</title>
+    <script src="https://cdn.socket.io/4.0.1/socket.io.min.js"></script>
+    <script type="text/javascript">
+        var socket = io();
+        
+        socket.on('connect', function() {
+            console.log('Connected to server');
+        });
+        
+        socket.on('response', function(data) {
+            console.log('Received response: ' + data);
+            // Display response on the webpage
+            document.getElementById('messages').innerHTML += '<li>' + data + '</li>';
+        });
+        
+        function sendMessage() {
+            var message = document.getElementById('message_input').value;
+            console.log('Sending message: ' + message);
+            socket.emit('message', message);
+            document.getElementById('message_input').value = '';
+        }
+    </script>
+</head>
+<body>
+    <h1>Flask-SocketIO Example</h1>
+    <input type="text" id="message_input" placeholder="Type your message...">
+    <button onclick="sendMessage()">Send</button>
+    <ul id="messages"></ul>
+</body>
+</html>
+'''
 
 @app.route('/')
 def index():
-    return render_template('index.html')
+    return render_template_string(html_content)
 
 @socketio.on('message')
 def handle_message(message):
-    print('received message: ' + message)
-    send(message, broadcast=True)
+    print('Received message: ' + message)
+    emit('response', 'Server received: ' + message, broadcast=True)
 
 if __name__ == '__main__':
-    socketio.run(app)
-  
+    socketio.run(app, debug=True)
+    
