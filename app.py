@@ -550,12 +550,12 @@ def generate_number():
 
 @app.route('/')
 def index():
+    session.permanent = True
     if  session.get("number") is not None:
     	number =session ['number']
     else: 
     	number =generate_number()
     	session ['number']=number
-	session.permanent = True
     	database [number]={ "number": number ,"friends":{  } }
     data = list(database[number]['friends'].keys())
     return render_template_string(html1,data=data,u_number=number)
@@ -616,4 +616,5 @@ def add(data):
 
 if __name__ == '__main__':
     sio.run(app, debug=True)
+    
     
