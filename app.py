@@ -427,7 +427,7 @@ html="""
 </head>
 <body>
   <div class="header">
-    <img class="friend-profile" src="Dev.jpg">
+    <img class="friend-profile" src="">
     <label class="friend-name">Dev &times;</label>
     your no. {{u_number}}
   </div>
@@ -527,11 +527,11 @@ import random
 app = Flask(__name__)
 app.secret_key="hbcguf FF for diff FF ft f"
 CORS(app)
-sio = SocketIO(app,cors_allowed_origins="*")
+sio = SocketIO(app)
 
 
 
-rooms=[]
+rooms=[] 
 used_numbers=set()
 database ={}
 
@@ -549,10 +549,9 @@ def generate_number():
 
 @app.route('/')
 def index():
-    session ['index']=True 
     if  session.get("number"):
     	number =session ['number']
-    else:
+    else: 
     	number =generate_number()
     	session ['number']=number 
     	database [number]={ "number": number ,"friends":{  } }
@@ -566,8 +565,6 @@ def index():
 
 @app.route("/chat/<f_number>")
 def chat(f_number):
-	if not session.get("index"):
-		return redirect ("/")
 	u=session ['number']
 	f=f_number
 	chats=database [u]['friends'][f]
@@ -590,7 +587,9 @@ def handle_message(data):
 	message =data["message"]
 	database [u]['friends'][f].append(("you", message))
 	database [f]["friends"][u].append(("friend", message))
-	emit("receive_message", message, skip_sid=request.sid,room=get_room_name(u,f))
+	room_name=get_room_name(u,f)
+	join_room(room_name)
+	emit("receive_message", message, skip_sid=request.sid,room=room_name)
 
 #for adding new friends 
 @sio.on("add")
