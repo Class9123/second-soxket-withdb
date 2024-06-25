@@ -227,7 +227,7 @@ html1="""
     var socket = io();
 
     function go_Tochat(d) {
-      window.location.href = "/chat/" + d;
+      window.location.href = `/chat/${u}/${d}`;
     }
 
     function add_friend() {
@@ -549,7 +549,7 @@ def generate_number():
 
 @app.route('/')
 def index():
-    if  session.get("number"):
+    if  session.get("number")!=None:
     	number =session ['number']
     else: 
     	number =generate_number()
@@ -561,11 +561,11 @@ def index():
     	print ()
     	print (j)
     	print ()
-    return render_template_string(html1, data=data,u_number=number)
+    return render_template_string(html1,data=data,u_number=number)
 
-@app.route("/chat/<f_number>")
+@app.route("/chat/<u_number>/<f_number>")
 def chat(f_number):
-	u=session ['number']
+	u=u_number
 	f=f_number
 	chats=database [u]['friends'][f]
 	return render_template_string(html,chats=chats,f_number=f,u_number=u)
