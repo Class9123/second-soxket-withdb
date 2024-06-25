@@ -525,7 +525,8 @@ from flask_cors import CORS
 import random 
 
 app = Flask(__name__)
-app.secret_key="hbcguf FF for diff FF ft f"
+app.secret_key="hbcguf FF for diff FjdjsjsjsjF ft f"
+app.config['SESSION_TYPE'] = 'filesystem'
 CORS(app)
 sio = SocketIO(app)
 
@@ -553,7 +554,8 @@ def index():
     	number =session ['number']
     else: 
     	number =generate_number()
-    	session ['number']=number 
+    	session ['number']=number
+	session.permanent = True
     	database [number]={ "number": number ,"friends":{  } }
     data = list(database[number]['friends'].keys())
     return render_template_string(html1,data=data,u_number=number)
