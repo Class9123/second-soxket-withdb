@@ -549,18 +549,13 @@ def generate_number():
 
 @app.route('/')
 def index():
-    if  session.get("number")!=None:
+    if  session.get("number") is not None:
     	number =session ['number']
     else: 
     	number =generate_number()
     	session ['number']=number 
     	database [number]={ "number": number ,"friends":{  } }
-    data=[]
-    for j in database [number]['friends']:
-    	data.append(j)
-    	print ()
-    	print (j)
-    	print ()
+    data = list(database[number]['friends'].keys())
     return render_template_string(html1,data=data,u_number=number)
 
 @app.route("/chat/<u_number>/<f_number>")
@@ -568,6 +563,7 @@ def chat(f_number):
 	u=u_number
 	f=f_number
 	chats=database [u]['friends'][f]
+	chats = database[u]['friends'].get(f, [])
 	return render_template_string(html,chats=chats,f_number=f,u_number=u)
 
 
@@ -615,7 +611,7 @@ def add(data):
 			database [f]['friends'][u]=[("friend","hi")]
 			rooms.append(room_name)
 			join_room(room_name)
-		emit("redirect")
+		emit("redirect",sid=request.sid)
 
 if __name__ == '__main__':
     sio.run(app, debug=True)
