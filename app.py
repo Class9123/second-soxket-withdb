@@ -559,11 +559,10 @@ def index():
     return render_template_string(html1,data=data,u_number=number)
 
 @app.route("/chat/<u_number>/<f_number>")
-def chat(f_number):
+def chat(u_number,f_number):
 	u=u_number
 	f=f_number
 	chats=database [u]['friends'][f]
-	chats = database[u]['friends'].get(f, [])
 	return render_template_string(html,chats=chats,f_number=f,u_number=u)
 
 
