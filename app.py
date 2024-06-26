@@ -450,62 +450,76 @@ html="""
     <i class="fas fa-arrow-down"></i>
   </button>
   <script>
-  var f="{{ f_number }}"
+  var f = "{{ f_number }}";
   var u = "{{ u_number }}";
-    var socket = io();
-    var chat = document.getElementById('chat');
-    var scrollButton = document.getElementById('scrollButton');
-    var messageInput = document.getElementById('message_input');
+  var socket = io();
+  var chat = document.getElementById('chat');
+  var scrollButton = document.getElementById('scrollButton');
+  var messageInput = document.getElementById('message_input');
 
-    socket.emit('join_room', { u_number: u, f_number: f });
-    
-    
-    // Function to send a message
-    function sendMessage() {
-      var message = document.getElementById('message_input').value;
-      
-      var messageDiv = document.createElement('div');
-      messageDiv.classList.add('message', 'you');
-      var innerDiv = document.createElement('div');
-      innerDiv.textContent = message;
-      innerDiv.classList.add('message-content', 'you');
-      messageDiv.appendChild(innerDiv);
-      document.getElementById('chat').appendChild(messageDiv);
-      data={ message:message ,  f_number:f , u_number:u}
-      socket.emit( 'send_message', data );
-      document.getElementById('message_input').value = '';
-      
-      scrollToBottom();
+  // Join the room immediately upon loading the page
+  socket.emit('join_room', { u_number: u, f_number: f });
+
+  // Function to send a message
+  function sendMessage() {
+    var message = document.getElementById('message_input').value;
+
+    var messageDiv = document.createElement('div');
+    messageDiv.classList.add('message', 'you');
+    var innerDiv = document.createElement('div');
+    innerDiv.textContent = message;
+    innerDiv.classList.add('message-content', 'you');
+    messageDiv.appendChild(innerDiv);
+    document.getElementById('chat').appendChild(messageDiv);
+    var data = { message: message, f_number: f, u_number: u };
+    socket.emit('send_message', data);
+    document.getElementById('message_input').value = '';
+
+    scrollToBottom();
+  }
+
+  // Event listener to receive and display messages
+  socket.on('receive_message', function(message) {
+    var messageDiv = document.createElement('div');
+    messageDiv.classList.add('message', 'friend');
+    var innerDiv = document.createElement('div');
+    innerDiv.textContent = message;
+    innerDiv.classList.add('message-content', 'friend');
+    messageDiv.appendChild(innerDiv);
+    document.getElementById('chat').appendChild(messageDiv);
+
+    // Show the scroll button if not at the bottom
+    if (chat.scrollTop + chat.clientHeight < chat.scrollHeight - 1) {
+      scrollButton.style.display = 'block';
     }
+  });
 
-    // Event listener to receive and display messages
-    socket.on('receive_message', function(message) {
-      var messageDiv = document.createElement('div');
-      messageDiv.classList.add('message', 'friend');
-      var innerDiv = document.createElement('div');
-      innerDiv.textContent = message;
-      innerDiv.classList.add('message-content', 'friend');
-      messageDiv.appendChild(innerDiv);
-      document.getElementById('chat').appendChild(messageDiv);
-      
-      // Show the scroll button if not at the bottom
-      if (chat.scrollTop + chat.clientHeight < chat.scrollHeight - 1) {
-        scrollButton.style.display = 'block';
-      }
-    });
+  // Function to scroll to the bottom of the chat
+  function scrollToBottom() {
+    chat.scrollTop = chat.scrollHeight;
+    scrollButton.style.display = 'none';
+  }
 
-    // Function to scroll to the bottom of the chat
-    function scrollToBottom() {
-      chat.scrollTop = chat.scrollHeight;
+  // Event listener to show/hide the scroll button
+  chat.addEventListener('scroll', function() {
+    if (chat.scrollTop + chat.clientHeight >= chat.scrollHeight - 1) {
       scrollButton.style.display = 'none';
+    } else {
+      scrollButton.style.display = 'block';
     }
+  });
 
-    // Event listener to show/hide the scroll button
-    chat.addEventListener('scroll', function() {
-      if (chat.scrollTop + chat.clientHeight >= chat.scrollHeight - 1) {
-        scrollButton.style.display = 'none';
-      } else {
-        scrollBu
+  // Event listener for input box focus
+  messageInput.addEventListener('focus', function() {
+    if (scrollButton.style.display !== 'none') {
+      scrollButton.click();
+    }
+  });
+
+  // Initial scroll to bottom
+  scrollToBottom();
+</script>
+
 </body>
 </html>
 """
