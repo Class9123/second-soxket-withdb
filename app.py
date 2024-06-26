@@ -457,6 +457,9 @@ html="""
     var scrollButton = document.getElementById('scrollButton');
     var messageInput = document.getElementById('message_input');
 
+    socket.emit('join_room', { u_number: u, f_number: f });
+    
+    
     // Function to send a message
     function sendMessage() {
       var message = document.getElementById('message_input').value;
@@ -502,20 +505,7 @@ html="""
       if (chat.scrollTop + chat.clientHeight >= chat.scrollHeight - 1) {
         scrollButton.style.display = 'none';
       } else {
-        scrollButton.style.display = 'block';
-      }
-    });
-
-    // Event listener for input box focus
-    messageInput.addEventListener('focus', function() {
-      if (scrollButton.style.display !== 'none') {
-        scrollButton.click();
-      }
-    });
-
-    // Initial scroll to bottom
-    scrollToBottom();
-  </script>
+        scrollBu
 </body>
 </html>
 """
@@ -591,7 +581,6 @@ def handle_message(data):
 	database [u]['friends'][f].append(("you", message))
 	database [f]["friends"][u].append(("friend", message))
 	room_name=get_room_name(u,f)
-	join_room(room_name)
 	emit("receive_message", message, skip_sid=request.sid,room=room_name)
 
 #for adding new friends 
