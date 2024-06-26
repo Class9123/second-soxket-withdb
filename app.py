@@ -568,6 +568,8 @@ def index():
 def chat(u_number,f_number):
 	u=u_number
 	f=f_number
+	if not(u in database and f in database):
+		return redirect ("/")
 	chats=database [u]['friends'][f]
 	return render_template_string(html,chats=chats,f_number=f,u_number=u)
 
