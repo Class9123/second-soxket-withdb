@@ -456,14 +456,22 @@ html="""
   var chat = document.getElementById('chat');
   var scrollButton = document.getElementById('scrollButton');
   var messageInput = document.getElementById('message_input');
-
+  messageInput.addEventListener('keyup', (event) => {
+            if (event.key === 'Enter') {
+                sendMessage();
+            }
+        });
+	
   // Join the room immediately upon loading the page
   socket.emit('join_room', { u_number: u, f_number: f });
 
   // Function to send a message
   function sendMessage() {
     var message = document.getElementById('message_input').value;
-
+    message=message.trim()
+    if (message===""){
+    return ;
+    }
     var messageDiv = document.createElement('div');
     messageDiv.classList.add('message', 'you');
     var innerDiv = document.createElement('div');
