@@ -227,7 +227,7 @@ html1="""
     var socket = io();
 
     function go_Tochat(d) {
-      window.location.href = `/chat/${u}/${d}`;
+      window.location.href = `/chat/${d}`;
     }
 
     function add_friend() {
@@ -280,12 +280,14 @@ html="""
   <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.5/socket.io.js"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
   <style>
-    :root {
-      --body-color: #f0f4f9;
-      --header-bg: linear-gradient(45deg, white, gray);
-      --you-bg: #25D366; /* Light green background for user's messages */
-      --friend-bg: #ffffff; /* White background for friend's messages */
-    }
+:root {
+    --body-color: #f0f4f9;
+    --header-bg: linear-gradient(45deg, white, gray);
+    --you-bg: #990011ff;
+    /* Light green background for user's messages */
+    --friend-bg: #00203fff;
+    /* White background for friend's messages */
+  }
 
     body {
       background-color: var(--body-color);
@@ -323,7 +325,8 @@ html="""
       flex: 1;
       overflow-y: auto;
       padding: 10px;
-      margin-bottom: 60px; /* Footer height + some padding */
+      margin-bottom: 60px;
+      /* Footer height + some padding */
     }
 
     .message {
@@ -333,6 +336,7 @@ html="""
     }
 
     .you {
+
       align-self: flex-end;
     }
 
@@ -341,16 +345,27 @@ html="""
     }
 
     .message-content {
+      display: flex;
+      flex-direction: column;
       box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
       border-radius: 15px;
       padding: 10px;
       max-width: 70%;
       word-wrap: break-word;
+      margin-bottom: 3px;
+      margin: 0,2px,0,2px;
       background-color: var(--friend-bg);
     }
 
     .message-content.you {
+      color: white;
+      color: #a07855ff;
       background-color: var(--you-bg);
+    }
+    .message-content.friend {
+      color: #a07855ff;
+      background-color: var(--friend-bg);
+      align-items: flex-end;
     }
 
     footer {
@@ -375,7 +390,7 @@ html="""
     }
 
     .send {
-      background-color: lightgreen;
+      background-color: #ce4a7eff;
       border: none;
       border-radius: 10%;
       padding: 10px;
@@ -408,20 +423,31 @@ html="""
     .scroll-button {
       display: none;
       position: fixed;
-      bottom: 80px; /* Adjusted for better positioning */
+      bottom: 80px;
+      /* Adjusted for better positioning */
       right: 20px;
-      background-color: #25D366;
+      background-color: #f7ced7ff;
       border: none;
       border-radius: 50%;
       padding: 15px;
       box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
       cursor: pointer;
       z-index: 1;
+
     }
 
     .scroll-button i {
       font-size: 18px;
-      color: white;
+      color: #6e4c1eff;
+
+    }
+    .date {
+      font-size: 10px;
+      color: gray;
+    }
+    .date span {
+      font-size: 15px;
+      margin: 2px;
     }
   </style>
 </head>
@@ -429,104 +455,133 @@ html="""
   <div class="header">
     <img class="friend-profile" src="">
     <label class="friend-name">Dev &times;</label>
-    your no. {{u_number}}
+    your no. 98727267
   </div>
   <div id="chat" class="chat">
-  {% for j in chats%}
-      <div class='message {{ j[0] }}'>
-        <div class="message-content {{ j[0] }}">
-          {{ j[1] }}
+ {% for j in chats %}
+    <div class='message'>
+      <div class="message-content {{j[0}}">
+        <div class="date">
+        D:{{j[2][0]}} <br>  &#9201; {{j[2][1]}}
         </div>
+        {{j[1]}}
       </div>
-    {% endfor %}
+    </div>
+   {% endfor %}
   </div>
   <footer>
     <input class="input-box" placeholder="Message" id="message_input" type="text">
-    <button class="send" onclick="sendMessage()">
+    <button class="send" id="sendbtn">
       <i class="fas fa-paper-plane"></i>
     </button>
   </footer>
-  <button id="scrollButton" class="scroll-button" onclick="scrollToBottom()">
+  <button id="scrollButton" class="scroll-button" onclick="scrollToBottom()"]>
     <i class="fas fa-arrow-down"></i>
   </button>
   <script>
-  var f = "{{ f_number }}";
-  var u = "{{ u_number }}";
-  var socket = io();
-  var chat = document.getElementById('chat');
-  var scrollButton = document.getElementById('scrollButton');
-  var messageInput = document.getElementById('message_input');
-  messageInput.addEventListener('keyup', (event) => {
-            if (event.key === 'Enter') {
-                sendMessage();
-            }
+    var f = "{{ f_number }}";
+    var u = "{{ u_number }}";
+    var socket = io();
+    var chat = document.getElementById('chat');
+    var scrollButton = document.getElementById('scrollButton');
+    var messageInput = document.getElementById('message_input');
+
+    messageInput.addEventListener('keyup', function(event) {
+      if (event.key === 'Enter') {
+        sendMessage();
+      }
+      
+      document.getElementById("sendbtn").addEventListener("click", sendMessage);
+      
+      document.getElementById("scrollButton").addEventListener("click", scrollToBottom)
+      // Join the room immediately upon loading the page
+      socket.emit('join_room',
+        {
+          u_number: u,
+          f_number: f
         });
-	
-  // Join the room immediately upon loading the page
-  socket.emit('join_room', { u_number: u, f_number: f });
 
-  // Function to send a message
-  function sendMessage() {
-    var message = document.getElementById('message_input').value;
-    message=message.trim()
-    if (message===""){
-    return ;
-    }
-    var messageDiv = document.createElement('div');
-    messageDiv.classList.add('message', 'you');
-    var innerDiv = document.createElement('div');
-    innerDiv.textContent = message;
-    innerDiv.classList.add('message-content', 'you');
-    messageDiv.appendChild(innerDiv);
-    document.getElementById('chat').appendChild(messageDiv);
-    var data = { message: message, f_number: f, u_number: u };
-    socket.emit('send_message', data);
-    document.getElementById('message_input').value = '';
+      // Function to send a message
+      function sendMessage() {
+        var message = messageInput.value.trim();
+        if (message === "") {
+          return;
+        }
+        var data = {
+          message: message,
+          f_number: f,
+          u_number: u
+        };
 
-    scrollToBottom();
-  }
+        socket.emit('send_message', data);
+        socket.on("date_time",function(date_time)){
+        var messageDiv = document.createElement("div");
+        messageDiv.classList.add("message");
+        messageDiv.innerHTML = `
+        <div class="message-content you">
+        <div class="date">
+        D:${date_time.date} <br>  &#9201; ${date_time.time}
+        </div>
+        ${message}
+        </div>
+        `;
+        chat.appendChild(messageDiv);
+        messageInput.value = '';
+        scrollToBottom();
+        }
+      }
 
-  // Event listener to receive and display messages
-  socket.on('receive_message', function(message) {
-    var messageDiv = document.createElement('div');
-    messageDiv.classList.add('message', 'friend');
-    var innerDiv = document.createElement('div');
-    innerDiv.textContent = message;
-    innerDiv.classList.add('message-content', 'friend');
-    messageDiv.appendChild(innerDiv);
-    document.getElementById('chat').appendChild(messageDiv);
+      // Function to add a message to the chat
+      function addMessage(message) {
+        var messageDiv = document.createElement("div");
+        messageDiv.classList.add("message");
+        messageDiv.innerHTML = `
+        <div class="message-content friend">
+        <div class="date">
+        D:${message.date} <br>  &#9201; ${message.time}
+        </div>
+        ${message.message}
+        </div>
+        `;
+        chat.appendChild(messageDiv);
+        showScrollButtonIfNeeded();
+      }
 
-    // Show the scroll button if not at the bottom
-    if (chat.scrollTop + chat.clientHeight < chat.scrollHeight - 1) {
-      scrollButton.style.display = 'block';
-    }
-  });
+      // Event listener to receive and display messages
+      socket.on('receive_message', function(message) {
+        addMessage(message);
+      });
 
-  // Function to scroll to the bottom of the chat
-  function scrollToBottom() {
-    chat.scrollTop = chat.scrollHeight;
-    scrollButton.style.display = 'none';
-  }
+      // Function to scroll to the bottom of the chat smoothly
+      function scrollToBottom() {
+        chat.scrollTop = chat.scrollHeight
+      }
+      // Function to show scroll button if not at the bottom of the chat
+      function showScrollButtonIfNeeded() {
+        if (chat.scrollTop + chat.clientHeight < chat.scrollHeight - 1) {
+          scrollButton.style.display = 'block';
+        } else {
+          scrollButton.style.display = 'none';
+        }
+      }
 
-  // Event listener to show/hide the scroll button
-  chat.addEventListener('scroll', function() {
-    if (chat.scrollTop + chat.clientHeight >= chat.scrollHeight - 1) {
-      scrollButton.style.display = 'none';
-    } else {
-      scrollButton.style.display = 'block';
-    }
-  });
+      // Event listener for scroll in the chat area
+      chat.addEventListener('scroll', function() {
+        showScrollButtonIfNeeded();
+      });
 
-  // Event listener for input box focus
-  messageInput.addEventListener('focus', function() {
-    if (scrollButton.style.display !== 'none') {
-      scrollButton.click();
-    }
-  });
+      // Event listener for input box focus
+      messageInput.addEventListener('focus', function() {
+        if (scrollButton.style.display !== 'none') {
+          scrollButton.click();
+        }
+      });
 
-  // Initial scroll to bottom
-  scrollToBottom();
-</script>
+      // Initial scroll to bottom when the page loads
+      scrollToBottom();
+
+    });
+  </script>
 
 </body>
 </html>
@@ -535,6 +590,7 @@ from flask import Flask, render_template_string, request, session, redirect
 from flask_socketio import SocketIO, emit, join_room
 from flask_cors import CORS
 import random 
+from datetime import datetime
 
 app = Flask(__name__)
 app.secret_key="hbcguf FF for diff FjdjsjsjsjF ft f"
@@ -559,7 +615,13 @@ def generate_number():
         if number not in used_numbers:
             used_numbers.add(number)
             return "98"+str(number)
-
+def get_date():
+	now = datetime.now()
+	date = now.strftime("%Y-%m-%d ")
+	time=now.strftime("%I:%M %p")
+	
+	return (date,time)
+	
 @app.route('/')
 def index():
     session.permanent = True    		
@@ -576,9 +638,11 @@ def index():
     data = list(database[number]['friends'].keys())
     return render_template_string(html1,data=data,u_number=number)
 
-@app.route("/chat/<u_number>/<f_number>")
-def chat(u_number,f_number):
-	u=u_number
+@app.route("/chat/<f_number>")
+def chat(f_number):
+	if not(session.get('number')):
+		return redirect ('/')
+	u=session ["number"]
 	f=f_number
 	if not(u in database and f in database):
 		return redirect ("/")
@@ -600,8 +664,12 @@ def handle_message(data):
 	u=data["u_number"]
 	f=data["f_number"]
 	message =data["message"]
-	database [u]['friends'][f].append(("you", message))
-	database [f]["friends"][u].append(("friend", message))
+	dt=get_date()
+	database [u]['friends'][f].append(("you", message,dt))
+	database [f]["friends"][u].append(("friend", message,dt))
+	data={ "date":dt[0] ,"time":dt[1] }
+	emit("date_time",data,sid=request.sid)
+	message ={"message": message ,"date":dt[0],"time":dt[1] }
 	room_name=get_room_name(u,f)
 	emit("receive_message", message, skip_sid=request.sid,room=room_name)
 
@@ -625,8 +693,9 @@ def add(data):
 	if f in database:
 		room_name = get_room_name(u,f)
 		if not room_name in rooms:
-			database [u]['friends'][f]=[("you","hi")]
-			database [f]['friends'][u]=[("friend","hi")]
+			dt=get_date()
+			database [u]['friends'][f]=[("you","hi",dt)]
+			database [f]['friends'][u]=[("friend","hi",dt)]
 			rooms.append(room_name)
 			join_room(room_name)
 		emit("redirect",sid=request.sid)
