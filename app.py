@@ -460,7 +460,7 @@ html="""
   <div id="chat" class="chat">
  {% for j in chats %}
     <div class='message'>
-      <div class="message-content {{j[0}}">
+      <div class="message-content {{j[0]}}">
         <div class="date">
         D:{{j[2][0]}} <br>  &#9201; {{j[2][1]}}
         </div>
