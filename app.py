@@ -668,6 +668,7 @@ def handle_message(data):
 	database [u]['friends'][f].append(("you", message,dt))
 	database [f]["friends"][u].append(("friend", message,dt))
 	data={ "date":dt[0] ,"time":dt[1] }
+	print ("reached")
 	emit("date_time",data,sid=request.sid)
 	message ={"message": message ,"date":dt[0],"time":dt[1] }
 	room_name=get_room_name(u,f)
@@ -680,8 +681,6 @@ def add(data):
 	f=data ['f_number'].strip()
 	u=str(u)
 	f=str(f)
-	print (u,f)
-	print (type(u))
 	if u==f:
 		data="This is your own number"
 		emit ("not_found",data,sid=request.sid)
