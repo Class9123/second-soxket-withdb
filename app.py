@@ -514,7 +514,7 @@ html="""
         };
 
         socket.emit('send_message', data);
-        socket.on("date_time",function(date_time)){
+        socket.on("date_time",function(date_time){
         var messageDiv = document.createElement("div");
         messageDiv.classList.add("message");
         messageDiv.innerHTML = `
@@ -529,7 +529,7 @@ html="""
         messageInput.value = '';
         scrollToBottom();
         }
-      }
+      });
 
       // Function to add a message to the chat
       function addMessage(message) {
