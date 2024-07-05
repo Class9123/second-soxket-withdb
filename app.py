@@ -700,6 +700,7 @@ def add(data):
 		emit("redirect",sid=request.sid)
 
 if __name__ == '__main__':
+    print("server started")
     sio.run(app, debug=True)
     
     
