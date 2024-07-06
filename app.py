@@ -528,7 +528,7 @@ html="""
         messageInput.value = '';
         scrollToBottom();
         }
-      });
+      );
 
       // Function to add a message to the chat
       function addMessage(message) {
