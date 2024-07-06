@@ -592,20 +592,17 @@ import random
 from datetime import datetime
 
 app = Flask(__name__)
-app.secret_key="hbcguf FF for diff FjdjsjsjsjF ft f"
+app.secret_key = "hbcguf FF for diff FjdjsjsjsjF ft f"
 app.config['SESSION_TYPE'] = 'filesystem'
 CORS(app)
 sio = SocketIO(app)
 
+rooms = [] 
+used_numbers = set()
+database = {}
 
-
-rooms=[] 
-used_numbers=set()
-database ={}
-
-
-def get_room_name(n1,n2):
-    return str(int(n1)+int(n2))
+def get_room_name(n1, n2):
+    return str(int(n1) + int(n2))
 	
 def generate_number():
     global used_numbers
@@ -613,89 +610,89 @@ def generate_number():
         number = random.randint(10000000, 99999999)
         if number not in used_numbers:
             used_numbers.add(number)
-            return "98"+str(number)
+            return "98" + str(number)
+
 def get_date():
     now = datetime.now()
     date = now.strftime("%Y-%m-%d ")
-    time=now.strftime("%I:%M %p")
-    return (date,time)
+    time = now.strftime("%I:%M %p")
+    return (date, time)
 	
 @app.route('/')
 def index():
     session.permanent = True    		
-    if  session.get("number") is not None:
-    	number =session ['number']
-    	if not(number in database):
-    	    number =generate_number()
-    	    session ["number"]=number 
-    	    database [number]={ "number": number ,"friends":{  } }
+    if session.get("number") is not None:
+        number = session['number']
+        if not (number in database):
+            number = generate_number()
+            session["number"] = number 
+            database[number] = { "number": number, "friends": {} }
     else: 
-        number =generate_number()
-    	session ['number']=number
-    	database [number]={ "number": number ,"friends":{  } }
+        number = generate_number()
+        session['number'] = number
+        database[number] = { "number": number, "friends": {} }
     data = list(database[number]['friends'].keys())
-    return render_template_string(html1,data=data,u_number=number)
+    return render_template_string(html1, data=data, u_number=number)
 
 @app.route("/chat/<f_number>")
 def chat(f_number):
     if not(session.get('number')):
-        return redirect ('/')
-    u=session ["number"]
-    f=f_number
-    if not(u in database and f in database):
-        return redirect ("/")
-    chats=database [u]['friends'][f]
-    return render_template_string(html,chats=chats,f_number=f,u_number=u)
+        return redirect('/')
+    u = session["number"]
+    f = f_number
+    if not (u in database and f in database):
+        return redirect("/")
+    chats = database[u]['friends'][f]
+    return render_template_string(html, chats=chats, f_number=f, u_number=u)
 
-
-#for chatting 
+# For chatting 
 @sio.on("join_room")
 def handle_join(data):
-    u=data["u_number"]
-    f=data["f_number"]
-    room=get_room_name(u,f)
+    u = data["u_number"]
+    f = data["f_number"]
+    room = get_room_name(u, f)
     join_room(room)
-    print ("room joined",room)
+    print("room joined", room)
 
 @sio.on("send_message")
 def handle_message(data):
-    u=data["u_number"]
-    f=data["f_number"]
-    message =data["message"]
-    dt=get_date()
-    database [u]['friends'][f].append(("you", message,dt))
-    database [f]["friends"][u].append(("friend", message,dt))
-    date={ "date":dt[0] ,"time":dt[1] }
-    print ("reached")
-    emit("date_time",date,sid=request.sid)
-    message ={"message": message ,"date":dt[0],"time":dt[1] }
-    room_name=get_room_name(u,f)
-    emit("receive_message", message, skip_sid=request.sid,room=room_name)
+    u = data["u_number"]
+    f = data["f_number"]
+    message = data["message"]
+    dt = get_date()
+    database[u]['friends'][f].append(("you", message, dt))
+    database[f]["friends"][u].append(("friend", message, dt))
+    date = { "date": dt[0], "time": dt[1] }
+    print("reached")
+    emit("date_time", date, sid=request.sid)
+    message = { "message": message, "date": dt[0], "time": dt[1] }
+    room_name = get_room_name(u, f)
+    emit("receive_message", message, skip_sid=request.sid, room=room_name)
 
-#for adding new friends 
+# For adding new friends 
 @sio.on("add")
 def add(data):
-    u =data['u_number'].strip()
-    f=data ['f_number'].strip()
-    u=str(u)
-    f=str(f)
-    if u==f:
-        data="This is your own number"
-	emit ("not_found",data,sid=request.sid)
-	return 
-    elif not  f in database :
-	data= "user not found"
-	emit ("not_found",data,sid=request.sid)
-	return 
+    u = data['u_number'].strip()
+    f = data['f_number'].strip()
+    u = str(u)
+    f = str(f)
+    if u == f:
+        data = "This is your own number"
+        emit("not_found", data, sid=request.sid)
+        return 
+    elif not f in database:
+        data = "user not found"
+        emit("not_found", data, sid=request.sid)
+        return 
     if f in database:
-	room_name = get_room_name(u,f)
-	if not room_name in rooms:
-	    dt=get_date()
-	    database [u]['friends'][f]=[("you","hi",dt)]
-	    database [f]['friends'][u]=[("friend","hi",dt)]
-	    rooms.append(room_name)
-	    join_room(room_name)
-	    emit("redirect",sid=request.sid)
+        room_name = get_room_name(u, f)
+        if not room_name in rooms:
+            dt = get_date()
+            database[u]['friends'][f] = [("you", "hi", dt)]
+            database[f]['friends'][u] = [("friend", "hi", dt)]
+            rooms.append(room_name)
+            join_room(room_name)
+            emit("redirect", sid=request.sid)
 
 if __name__ == '__main__':
     print("server started", flush=True)
