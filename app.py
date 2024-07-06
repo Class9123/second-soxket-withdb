@@ -271,14 +271,13 @@ html1="""
 # HTML templates as global variables
 
 html="""
-<!DOCTYPE html>
+<!DOCTYPE
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <title>Class 10 Facebook</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.5/socket.io.js"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
   <style>
 :root {
     --body-color: #f0f4f9;
@@ -475,7 +474,7 @@ html="""
       <i class="fas fa-paper-plane"></i>
     </button>
   </footer>
-  <button id="scrollButton" class="scroll-button" onclick="scrollToBottom()"]>
+  <button id="scrollButton" class="scroll-button" onclick="scrollToBottom()">
     <i class="fas fa-arrow-down"></i>
   </button>
   <script>
@@ -606,7 +605,7 @@ database ={}
 
 
 def get_room_name(n1,n2):
-	return str(int(n1)+int(n2))
+    return str(int(n1)+int(n2))
 	
 def generate_number():
     global used_numbers
@@ -616,11 +615,10 @@ def generate_number():
             used_numbers.add(number)
             return "98"+str(number)
 def get_date():
-	now = datetime.now()
-	date = now.strftime("%Y-%m-%d ")
-	time=now.strftime("%I:%M %p")
-	
-	return (date,time)
+    now = datetime.now()
+    date = now.strftime("%Y-%m-%d ")
+    time=now.strftime("%I:%M %p")
+    return (date,time)
 	
 @app.route('/')
 def index():
@@ -628,11 +626,11 @@ def index():
     if  session.get("number") is not None:
     	number =session ['number']
     	if not(number in database):
-    		number =generate_number()
-    		session ["number"]=number 
-    		database [number]={ "number": number ,"friends":{  } }
+    	    number =generate_number()
+    	    session ["number"]=number 
+    	    database [number]={ "number": number ,"friends":{  } }
     else: 
-    	number =generate_number()
+        number =generate_number()
     	session ['number']=number
     	database [number]={ "number": number ,"friends":{  } }
     data = list(database[number]['friends'].keys())
@@ -640,64 +638,64 @@ def index():
 
 @app.route("/chat/<f_number>")
 def chat(f_number):
-	if not(session.get('number')):
-		return redirect ('/')
-	u=session ["number"]
-	f=f_number
-	if not(u in database and f in database):
-		return redirect ("/")
-	chats=database [u]['friends'][f]
-	return render_template_string(html,chats=chats,f_number=f,u_number=u)
+    if not(session.get('number')):
+        return redirect ('/')
+    u=session ["number"]
+    f=f_number
+    if not(u in database and f in database):
+        return redirect ("/")
+    chats=database [u]['friends'][f]
+    return render_template_string(html,chats=chats,f_number=f,u_number=u)
 
 
 #for chatting 
 @sio.on("join_room")
 def handle_join(data):
-	u=data["u_number"]
-	f=data["f_number"]
-	room=get_room_name(u,f)
-	join_room(room)
-	print ("room joined",room)
+    u=data["u_number"]
+    f=data["f_number"]
+    room=get_room_name(u,f)
+    join_room(room)
+    print ("room joined",room)
 
 @sio.on("send_message")
 def handle_message(data):
-	u=data["u_number"]
-	f=data["f_number"]
-	message =data["message"]
-	dt=get_date()
-	database [u]['friends'][f].append(("you", message,dt))
-	database [f]["friends"][u].append(("friend", message,dt))
-	data={ "date":dt[0] ,"time":dt[1] }
-	print ("reached")
-	emit("date_time",data,sid=request.sid)
-	message ={"message": message ,"date":dt[0],"time":dt[1] }
-	room_name=get_room_name(u,f)
-	emit("receive_message", message, skip_sid=request.sid,room=room_name)
+    u=data["u_number"]
+    f=data["f_number"]
+    message =data["message"]
+    dt=get_date()
+    database [u]['friends'][f].append(("you", message,dt))
+    database [f]["friends"][u].append(("friend", message,dt))
+    date={ "date":dt[0] ,"time":dt[1] }
+    print ("reached")
+    emit("date_time",date,sid=request.sid)
+    message ={"message": message ,"date":dt[0],"time":dt[1] }
+    room_name=get_room_name(u,f)
+    emit("receive_message", message, skip_sid=request.sid,room=room_name)
 
 #for adding new friends 
 @sio.on("add")
 def add(data):
-	u =data['u_number'].strip()
-	f=data ['f_number'].strip()
-	u=str(u)
-	f=str(f)
-	if u==f:
-		data="This is your own number"
-		emit ("not_found",data,sid=request.sid)
-		return 
-	elif not  f in database :
-		data= "user not found"
-		emit ("not_found",data,sid=request.sid)
-		return 
-	if f in database:
-		room_name = get_room_name(u,f)
-		if not room_name in rooms:
-			dt=get_date()
-			database [u]['friends'][f]=[("you","hi",dt)]
-			database [f]['friends'][u]=[("friend","hi",dt)]
-			rooms.append(room_name)
-			join_room(room_name)
-		emit("redirect",sid=request.sid)
+    u =data['u_number'].strip()
+    f=data ['f_number'].strip()
+    u=str(u)
+    f=str(f)
+    if u==f:
+        data="This is your own number"
+	emit ("not_found",data,sid=request.sid)
+	return 
+    elif not  f in database :
+	data= "user not found"
+	emit ("not_found",data,sid=request.sid)
+	return 
+    if f in database:
+	room_name = get_room_name(u,f)
+	if not room_name in rooms:
+	    dt=get_date()
+	    database [u]['friends'][f]=[("you","hi",dt)]
+	    database [f]['friends'][u]=[("friend","hi",dt)]
+	    rooms.append(room_name)
+	    join_room(room_name)
+	    emit("redirect",sid=request.sid)
 
 if __name__ == '__main__':
     print("server started", flush=True)
