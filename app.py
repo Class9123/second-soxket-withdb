@@ -459,16 +459,16 @@ html="""
     your no. 98727267
   </div>
   <div id="chat" class="chat">
- {% for j in chats %}
-    <div class='message'>
-      <div class="message-content {{j[0]}}">
-        <div class="date">
-        D:{{j[2][0]}} <br>  &#9201; {{j[2][1]}}
+    {% for j in chats %}
+      <div class='message'>
+        <div class="message-content {{j[0]}}">
+          <div class="date">
+            D:{{j[2][0]}} <br> &#9201; {{j[2][1]}}
+          </div>
+          {{j[1]}}
         </div>
-        {{j[1]}}
       </div>
-    </div>
-   {% endfor %}
+    {% endfor %}
   </div>
   <footer>
     <input class="input-box" placeholder="Message" id="message_input" type="text">
@@ -487,104 +487,95 @@ html="""
     var scrollButton = document.getElementById('scrollButton');
     var messageInput = document.getElementById('message_input');
 
+    function sendMessage() {
+      var message = messageInput.value.trim();
+      if (message === "") {
+        return;
+      }
+      var data = {
+        message: message,
+        f_number: f,
+        u_number: u
+      };
+      socket.emit('send_message', data);
+    }
+
+    function addMessage(message) {
+      var messageDiv = document.createElement("div");
+      messageDiv.classList.add("message");
+      messageDiv.innerHTML = `
+        <div class="message-content friend">
+          <div class="date">
+            D:${message.date} <br> &#9201; ${message.time}
+          </div>
+          ${message.message}
+        </div>
+      `;
+      chat.appendChild(messageDiv);
+      showScrollButtonIfNeeded();
+    }
+
+    function scrollToBottom() {
+      chat.scrollTop = chat.scrollHeight;
+    }
+
+    function showScrollButtonIfNeeded() {
+      if (chat.scrollTop + chat.clientHeight < chat.scrollHeight - 1) {
+        scrollButton.style.display = 'block';
+      } else {
+        scrollButton.style.display = 'none';
+      }
+    }
+
     messageInput.addEventListener('keyup', function(event) {
       if (event.key === 'Enter') {
         sendMessage();
       }
-      
-      document.getElementById("sendbtn").addEventListener("click", sendMessage);
-      
-      document.getElementById("scrollButton").addEventListener("click", scrollToBottom)
-      // Join the room immediately upon loading the page
-      socket.emit('join_room',
-        {
-          u_number: u,
-          f_number: f
-        });
-
-      // Function to send a message
-      function sendMessage() {
-        var message = messageInput.value.trim();
-        if (message === "") {
-          return;
-        }
-        var data = {
-          message: message,
-          f_number: f,
-          u_number: u
-        };
-
-        socket.emit('send_message', data);
-        socket.on("date_time",function(date_time){
-        var messageDiv = document.createElement("div");
-        messageDiv.classList.add("message");
-        messageDiv.innerHTML = `
-        <div class="message-content you">
-        <div class="date">
-        D:${date_time.date} <br>  &#9201; ${date_time.time}
-        </div>
-        ${message}
-        </div>
-        `;
-        chat.appendChild(messageDiv);
-        messageInput.value = '';
-        scrollToBottom();
-        }
-      );
-
-      // Function to add a message to the chat
-      function addMessage(message) {
-        var messageDiv = document.createElement("div");
-        messageDiv.classList.add("message");
-        messageDiv.innerHTML = `
-        <div class="message-content friend">
-        <div class="date">
-        D:${message.date} <br>  &#9201; ${message.time}
-        </div>
-        ${message.message}
-        </div>
-        `;
-        chat.appendChild(messageDiv);
-        showScrollButtonIfNeeded();
-      }
-
-      // Event listener to receive and display messages
-      socket.on('receive_message', function(message) {
-        addMessage(message);
-      });
-
-      // Function to scroll to the bottom of the chat smoothly
-      function scrollToBottom() {
-        chat.scrollTop = chat.scrollHeight
-      }
-      // Function to show scroll button if not at the bottom of the chat
-      function showScrollButtonIfNeeded() {
-        if (chat.scrollTop + chat.clientHeight < chat.scrollHeight - 1) {
-          scrollButton.style.display = 'block';
-        } else {
-          scrollButton.style.display = 'none';
-        }
-      }
-
-      // Event listener for scroll in the chat area
-      chat.addEventListener('scroll', function() {
-        showScrollButtonIfNeeded();
-      });
-
-      // Event listener for input box focus
-      messageInput.addEventListener('focus', function() {
-        if (scrollButton.style.display !== 'none') {
-          scrollButton.click();
-        }
-      });
-
-      // Initial scroll to bottom when the page loads
-      scrollToBottom();
-
     });
-  </script>
 
+    document.getElementById("sendbtn").addEventListener("click", sendMessage);
+
+    document.getElementById("scrollButton").addEventListener("click", scrollToBottom);
+
+    socket.emit('join_room', {
+      u_number: u,
+      f_number: f
+    });
+
+    socket.on("date_time", function(date_time) {
+      var messageDiv = document.createElement("div");
+      messageDiv.classList.add("message");
+      messageDiv.innerHTML = `
+        <div class="message-content you">
+          <div class="date">
+            D:${date_time.date} <br> &#9201; ${date_time.time}
+          </div>
+          ${date_time.message}
+        </div>
+      `;
+      chat.appendChild(messageDiv);
+      messageInput.value = '';
+      scrollToBottom();
+    });
+
+    socket.on('receive_message', function(message) {
+      addMessage(message);
+    });
+
+    chat.addEventListener('scroll', function() {
+      showScrollButtonIfNeeded();
+    });
+
+    messageInput.addEventListener('focus', function() {
+      if (scrollButton.style.display !== 'none') {
+        scrollButton.click();
+      }
+    });
+
+    scrollToBottom();
+  </script>
 </body>
+
 </html>
 """
 from flask import Flask, render_template_string, request, session, redirect 
@@ -654,18 +645,19 @@ def handle_join(data):
     f = data["f_number"]
     room = get_room_name(u, f)
     join_room(room)
-    print("room joined", room)
+    #("room joined", room)
 
 @sio.on("send_message")
 def handle_message(data):
     u = data["u_number"]
     f = data["f_number"]
     message = data["message"]
+    #("m",message)
     dt = get_date()
     database[u]['friends'][f].append(("you", message, dt))
     database[f]["friends"][u].append(("friend", message, dt))
-    date = { "date": dt[0], "time": dt[1] }
-    print("reached")
+    date = {  "message": message , "date": dt[0], "time": dt[1] }
+    #("\nreached\n")
     emit("date_time", date, sid=request.sid)
     message = { "message": message, "date": dt[0], "time": dt[1] }
     room_name = get_room_name(u, f)
@@ -697,7 +689,7 @@ def add(data):
             emit("redirect", sid=request.sid)
 
 if __name__ == '__main__':
-    print("server started", flush=True)
+
     sio.run(app, debug=True)
     
     
